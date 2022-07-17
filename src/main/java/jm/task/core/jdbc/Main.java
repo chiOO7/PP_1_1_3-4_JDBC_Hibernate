@@ -18,7 +18,6 @@ public class Main {
         userService.cleanUsersTable();
         userService.dropUsersTable();
         try (Connection connection = Util.getConnection()) {
-            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
