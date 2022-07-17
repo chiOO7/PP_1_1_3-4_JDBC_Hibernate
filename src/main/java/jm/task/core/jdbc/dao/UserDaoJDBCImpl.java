@@ -16,11 +16,10 @@ public class UserDaoJDBCImpl implements UserDao {
     public void createUsersTable() {
         Connection connection = Util.getConnection();
         try {
-            StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE USER (ID BIGINT NOT NULL AUTO_INCREMENT,");
-            sqlBuilder.append("NAME VARCHAR(50) NOT NULL, LAST_NAME VARCHAR(50) NOT NULL, AGE INT NOT NULL,");
-            sqlBuilder.append("PRIMARY KEY (ID))");
+            String sql = "CREATE TABLE IF NOT EXISTS USER (ID BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+                    "NAME VARCHAR(50) NOT NULL, LAST_NAME VARCHAR(50) NOT NULL, AGE INT NOT NULL);";
             try {
-                connection.createStatement().executeUpdate(sqlBuilder.toString());
+                connection.createStatement().executeUpdate(sql);
             } catch (SQLSyntaxErrorException e) {
                 System.err.println("Table already exists");
                 connection.rollback();

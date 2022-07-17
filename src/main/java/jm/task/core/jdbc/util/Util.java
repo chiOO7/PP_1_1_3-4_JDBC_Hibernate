@@ -1,12 +1,11 @@
 package jm.task.core.jdbc.util;
 
 import jm.task.core.jdbc.model.User;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.hibernate.service.ServiceRegistry;
 
 import java.sql.*;
 import java.util.Properties;
@@ -14,20 +13,26 @@ import java.util.Properties;
 public class Util {
     // реализуйте настройку соеденения с БД
     private static Connection connection;
-    private static Session session;
     private static SessionFactory sessionFactory;
+    private static StandardServiceRegistry serviceRegistry;
 
     static {
 //        connection = getMySQLConnection();
-        session = getHibernateSessionFactory("localhost", "pp_1_1_3_shema", "root", "1987");
+        sessionFactory = getHibernateSessionFactory("localhost", "pp_1_1_3_shema", "root", "1987");
     }
 
     public static Connection getConnection() {
         return connection;
     }
 
-    public static Session getSession() {
-        return session;
+    public static void shutDown() {
+        if (serviceRegistry != null) {
+            StandardServiceRegistryBuilder.destroy(serviceRegistry);
+        }
+    }
+
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
     private static Connection getMySQLConnection() {
@@ -51,13 +56,13 @@ public class Util {
         return connection;
     }
 
-    private static Session getHibernateSessionFactory(String hostName, String dbName,
-                                                    String userName, String password) {
+    private static SessionFactory getHibernateSessionFactory(String hostName, String dbName,
+                                                             String userName, String password) {
+
         if (sessionFactory == null) {
             try {
-                Configuration configuration = new Configuration();
+                StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
 
-                // Hibernate settings equivalent to hibernate.cfg.xml's properties
                 Properties settings = new Properties();
                 String connectionURL = "jdbc:mysql://" + hostName + ":3306/" + dbName;
                 settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
@@ -65,25 +70,23 @@ public class Util {
                 settings.put(Environment.USER, userName);
                 settings.put(Environment.PASS, password);
                 settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
-
                 settings.put(Environment.SHOW_SQL, "true");
+                settings.put(Environment.HBM2DDL_AUTO, "update");
 
-                settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+                serviceRegistryBuilder.applySettings(settings);
+                serviceRegistry = serviceRegistryBuilder.build();
 
-                settings.put(Environment.HBM2DDL_AUTO, "create-drop");
+                MetadataSources metadata = new MetadataSources(serviceRegistry)
+                        .addAnnotatedClass(User.class);
 
-                configuration.setProperties(settings);
+                sessionFactory = metadata.buildMetadata().buildSessionFactory();
 
-                configuration.addAnnotatedClass(User.class);
-
-                ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
-                        .applySettings(configuration.getProperties()).build();
-
-                sessionFactory = configuration.buildSessionFactory(serviceRegistry);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (serviceRegistry != null) {
+                    StandardServiceRegistryBuilder.destroy(serviceRegistry);
+                }
             }
         }
-        return sessionFactory.openSession();
+        return sessionFactory;
     }
 }
