@@ -16,7 +16,7 @@ public class Main {
         userService.cleanUsersTable();
         userService.getAllUsers().forEach(System.out::println);
         userService.dropUsersTable();
-        Util.getSessionFactory().close();
+
         Util.shutDown();
     }
 

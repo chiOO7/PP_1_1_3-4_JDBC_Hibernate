@@ -12,6 +12,10 @@ import java.util.Properties;
 
 public class Util {
     // реализуйте настройку соеденения с БД
+    private static final String HOST_NAME = "localhost";
+    private static final String DB_NAME = "pp_1_1_3_shema";
+    private static final String USER_NAME = "root";
+    private static final String PASSWORD = "1987";
     private static Connection connection;
     private static SessionFactory sessionFactory;
     private static StandardServiceRegistry serviceRegistry;
@@ -26,6 +30,7 @@ public class Util {
     }
 
     public static void shutDown() {
+        sessionFactory.close();
         if (serviceRegistry != null) {
             StandardServiceRegistryBuilder.destroy(serviceRegistry);
         }
@@ -36,12 +41,7 @@ public class Util {
     }
 
     private static Connection getMySQLConnection() {
-        String hostName = "localhost";
-        String dbName = "pp_1_1_3_shema";
-        String userName = "root";
-        String password = "1987";
-
-        return getMySQLConnection(hostName, dbName, userName, password);
+        return getMySQLConnection(HOST_NAME, DB_NAME, USER_NAME, PASSWORD);
     }
 
     private static Connection getMySQLConnection(String hostName, String dbName,
@@ -58,13 +58,14 @@ public class Util {
 
     private static SessionFactory getHibernateSessionFactory(String hostName, String dbName,
                                                              String userName, String password) {
+        String connectionURL = "jdbc:mysql://" + hostName + ":3306/" + dbName;
 
         if (sessionFactory == null) {
             try {
                 StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
 
                 Properties settings = new Properties();
-                String connectionURL = "jdbc:mysql://" + hostName + ":3306/" + dbName;
+
                 settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
                 settings.put(Environment.URL, connectionURL);
                 settings.put(Environment.USER, userName);
@@ -74,6 +75,7 @@ public class Util {
                 settings.put(Environment.HBM2DDL_AUTO, "update");
 
                 serviceRegistryBuilder.applySettings(settings);
+
                 serviceRegistry = serviceRegistryBuilder.build();
 
                 MetadataSources metadata = new MetadataSources(serviceRegistry)
