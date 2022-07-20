@@ -20,11 +20,6 @@ public class Util {
     private static SessionFactory sessionFactory;
     private static StandardServiceRegistry serviceRegistry;
 
-    static {
-//        connection = getMySQLConnection();
-        sessionFactory = getHibernateSessionFactory("localhost", "pp_1_1_3_shema", "root", "1987");
-    }
-
     public static Connection getConnection() {
         return connection;
     }
@@ -37,7 +32,7 @@ public class Util {
     }
 
     public static SessionFactory getSessionFactory() {
-        return sessionFactory;
+        return getHibernateSessionFactory("localhost", "pp_1_1_3_shema", "root", "1987");
     }
 
     private static Connection getMySQLConnection() {
